@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "target": "ES5",
+        "checkJs": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "allowJs": true,
+        "diagnostics": true,
+        "allowUnusedLabels": true,
+        "allowUnreachableCode": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        "noEmitOnError": true,
+        "noImplicitThis": true
+    },
+    "exclude": [
+        "node_modules",
+        "**/node_modules/*"
+    ]
+}

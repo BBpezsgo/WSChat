@@ -1,0 +1,10 @@
+**/desktop.ini
+**/*.xcf
+
+/node_modules
+/storage
+/cert.pem
+/private.pem
+/package-lock.json
+/public/DigiGrotesk.ttf
+/public/handlebars.js

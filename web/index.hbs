@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="status-container">
+        <div>
+            <img src="/img/antenna.png" width=16 height=16 class="miniicon"><span id="status-socket"></span>
+        </div>
+        <div>
+            You are <span id="status-user">{{user.name}}</span>
+        </div>
+        <div style="padding-top:unset">
+            <button onclick="LogOut(event)">Leave</button>
+        </div>
+        <div style="padding-top:unset" id="users-container-toggle">
+            <button onclick="document.getElementById('users-container').classList.toggle('visible')">
+                Users
+            </button>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div id="channels-container">
+            <h1>Channels</h1>
+            {{#each channels}}
+            <div class="channel-container" id="channel-{{ID}}">
+                <a href="/?channel={{ID}}">
+                    <h2>
+                        {{ID}}
+                    </h2>
+                </a>
+            </div>
+            {{/each}}
+        </div>
+        <div id="chat-container">
+            <div id="messages">
+                {{#each messages}}
+                {{#with this}}{{> base_message}}{{/with}}
+                {{/each}}
+            </div>
+            <script defer>
+                function ScrollToBottom() {
+                    const messagesElement = document.getElementById('messages')
+                    messagesElement.scrollTo(0, messagesElement.scrollHeight)
+                }
+                setTimeout(ScrollToBottom, 1)
+            </script>
+
+            <div id="input">
+                <input id="chat-input" placeholder="Message" type="text" maxlength=256 onkeypress="OnKeyPress(event)">
+                <button onclick="SendMessage()">
+                    <img src="/img/pencil.png" width=24 height=24 class="miniicon">
+                    <span style="height: 100%; display: inline-block; vertical-align: middle; position: relative; top: 1px;">Send Message</span>
+                </button>
+            </div>
+        </div>
+        <div id="users-container">
+            <h1>Users</h1>
+            {{#each users}}
+            <div class="user-container">
+                <div>
+                    <img title="Avatar" src="/img/user.png" width=32 height=32 class="avatar">
+                    <h1>{{name}}</h1>
+
+                    {{#if isOnline}}
+                    <span class="status-icon status-icon-online" title="Online"></span>
+                    {{else}}
+                    <span class="status-icon status-icon-offline" title="Offline"></span>
+                    {{/if}}
+
+                    <br/>
+
+                    <span class="last-activity-label">{{datetime lastAction}}</span>
+
+                    {{#if admin}}
+                    <br/>
+
+                    <span>Admin</span>
+                    {{/if}}
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    <script src="/cookie.js"></script>
+    <script src="http.js"></script>
+    <script src="handlebars.js"></script>
+    <script src="handlebar-helpers.js"></script>
+    <script src="utilities.js"></script>
+    <script defer src="socket.js"></script>
+    <script defer src="chat.js"></script>
+</body>
+</html>

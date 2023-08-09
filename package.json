@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "fs": "latest",
+    "handlebars": "^4.7.8",
+    "js-cookie": "^3.0.5",
+    "ws": "^8.13.0"
+  }
+}

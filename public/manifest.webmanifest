@@ -1,0 +1,34 @@
+{
+    "short_name": "Vestlus",
+    "name": "Vestlus",
+    "icons": [
+        {
+            "src": "/img/icon16.png",
+            "type": "image/png",
+            "sizes": "16x16"
+        },
+        {
+            "src": "/img/icon32.png",
+            "type": "image/png",
+            "sizes": "32x32"
+        },
+        {
+            "src": "/img/icon64.png",
+            "type": "image/png",
+            "sizes": "64x64"
+        },
+        {
+            "src": "/img/icon128.png",
+            "type": "image/png",
+            "sizes": "128x128"
+        },
+        {
+            "src": "/img/icon256.png",
+            "type": "image/png",
+            "sizes": "256x256"
+        }
+    ],
+    "background_color": "#ffffff",
+    "display": "browser",
+    "start_url": "https://192.168.1.100:7776/"
+}
