@@ -6,7 +6,16 @@ if (this.caches) {
         .then(function(cache) { TemplateCache = cache })
         .catch(console.error)
 }
-    
+
+CustomTemplateCache = { }
+
+PreloadTemplates()
+
+function IsSecure() {
+    const protocol = window.location.protocol
+    return (protocol === 'https:')
+}
+
 /**
  * @param {string} htmlString
  */
@@ -25,12 +34,12 @@ function CreateElement(htmlString) {
 async function TemplateAsync(name, values) {
     const url = '/templates/' + name + '.hbs'
 
-    console.log('Loading template', name)
-
     /** @type {string | null} */
     let hbs = null
 
-    if (TemplateCache) {
+    console.log(`[Handlebars]: Loading template "${name}" ...`)
+
+    if (TemplateCache) {    
         try {
             const cached = await TemplateCache.match(url)
             if (cached) {
@@ -42,6 +51,15 @@ async function TemplateAsync(name, values) {
     }
 
     if (!hbs) {
+        const storedTemplateData = CustomTemplateCache[name]
+        if (storedTemplateData) {
+            hbs = storedTemplateData
+        }
+    }
+
+    if (!hbs) {
+        console.log(`[Handlebars]: Downloading template "${name}" ...`)
+
         const res = await fetch(new URL(window.location.origin + url))
     
         if (TemplateCache) {
@@ -49,10 +67,15 @@ async function TemplateAsync(name, values) {
         }
     
         hbs = await res.text()
+    
+        CustomTemplateCache[name] = hbs
+        
+        console.log(`[Handlebars]: Template "${name}" downloaded`)
     }
 
     const html = Handlebars.compile(hbs)(values)
     
+    console.log(`[Handlebars]: Template "${name}" loaded`)
     return CreateElement(html)
 }
 

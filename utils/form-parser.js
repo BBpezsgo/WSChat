@@ -2,14 +2,21 @@
  * @param {string} data
  */
 module.exports = function(data) {
-    const rows = data.split('&')
     /**
      * @type {{ [key: string]: string | undefined }}
      */
     let result = { }
+
+    if (!data) { return result }
+    
+    if (data.length <= 0) { return result }
+    
+    if (!data.includes('=')) { return result }
+    
+    const rows = data.split('&')
     for (const row of rows) {
         if (!row.includes('=')) {
-            console.warn('[Form Parser]: Row does not includes \"&\"', row)
+            console.warn('[Form Parser]: Row does not includes \"=\"', row)
             continue
         }
 

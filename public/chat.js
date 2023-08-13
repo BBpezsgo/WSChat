@@ -1,17 +1,15 @@
-/** @type {HTMLInputElement} */
-// @ts-ignore
+/** @ts-ignore @type {HTMLInputElement} */
 const chatInput = document.getElementById('chat-input')
-/** @type {HTMLInputElement} */
-// @ts-ignore
+/** @ts-ignore @type {HTMLInputElement} */
 const statusSocket = document.getElementById('status-socket')
-/** @type {HTMLInputElement} */
-// @ts-ignore
+/** @ts-ignore @type {HTMLInputElement} */
 const statusSession = document.getElementById('status-session')
 
-const messages = [ ]
+/** @type {{ [messageID: string]: { content: string } | undefined }} */
+const sendingMessages = { }
 
 function LogOut() {
-    Cookies.remove('account')
+    Cookies.remove('token')
     location.reload()
 }
 
@@ -22,20 +20,42 @@ function OnKeyPress(e) {
     if (e.key === 'Enter') { SendMessage() }
 }
 
-function GetCurrentChannel() {
-    return new URL(window.location.href).searchParams.get('channel')
-}
-
 function SendMessage() {
     if (!chatInput.value || chatInput.value.length <= 0) {
         return
     }
-    
-    ws.SendMessage('send-message', {
-        content: chatInput.value,
-        channel: GetCurrentChannel() ?? '',
-    }, console.log)
 
+    const messageContent = chatInput.value
+
+    const messageID = ('sending-message-' + GUID())
+
+    TemplateAsync('sending_message', {
+        ID: messageID,
+        content: messageContent,
+        sender: {
+            name: '?',
+        },
+        time: Date.now(),
+    }).then(element => {
+            const messagesElement = GetElement('messages')
+
+            const mustScroll = (messagesElement.clientHeight - messagesElement.scrollTop < 100)
+
+            messagesElement.appendChild(element)
+            sendingMessages[messageID] = {
+                content: messageContent
+            }
+
+            if (mustScroll) {
+                messagesElement.scrollTo(0, messagesElement.scrollHeight)
+            }
+
+            ws.SendMessage('send-message', {
+                content: messageContent,
+                channel: ChatInformations?.channel ?? '',
+            })
+        }).catch(console.error)
+    
     chatInput.value = ''
 }
 
@@ -45,7 +65,7 @@ function SendMessage() {
 function DeleteMessage(id) {
     ws.SendMessage('delete-message', {
         message: id,
-        channel: GetCurrentChannel() ?? '',
+        channel: ChatInformations?.channel ?? '',
     }, console.log)
 }
 
@@ -59,17 +79,7 @@ const ws = new WebSocketManager(OnWebSocketMessage)
 function OnWebSocketMessage(message) {
     switch (message.type) {
         case 'message-created': {
-            messages.push(message.data)
-            TemplateAsync('base_message', message.data)
-                .then(element => {
-                    const messagesElement = GetElement('messages')
-                    const mustScroll = (messagesElement.clientHeight - messagesElement.scrollTop < 100)
-                    messagesElement.appendChild(element)
-                    if (mustScroll) {
-                        messagesElement.scrollTo(0, messagesElement.scrollHeight)
-                    }
-                })
-                .catch(console.error)
+            GenerateMessageElement(message.data)
             break
         }
         case 'message-deleted': {
@@ -85,10 +95,47 @@ function OnWebSocketMessage(message) {
     }
 }
 
+/**
+ * @param {import('../models').Message} data
+ * @returns {Promise<HTMLElement>}
+ */
+function GenerateMessageElement(data) {
+    return new Promise((resolve, reject) => {
+        TemplateAsync('base_message', data)
+            .then(element => {
+                const messagesElement = GetElement('messages')
+                
+                let existingMessageElement = null
+
+                for (const key in sendingMessages) {
+                    const value = sendingMessages[key]
+                    if (!value) { continue }
+                    if (value.content !== data.content) { continue }
+                    existingMessageElement = TryGetElement(key)
+                    sendingMessages[key] = undefined
+                }
+
+                if (existingMessageElement) {
+                    existingMessageElement.outerHTML = element.outerHTML
+                    resolve(existingMessageElement)
+                } else {
+                    const mustScroll = (messagesElement.clientHeight - messagesElement.scrollTop < 100)
+                    const newElement = messagesElement.appendChild(element)
+                    if (mustScroll) {
+                        messagesElement.scrollTo(0, messagesElement.scrollHeight)
+                    }
+                    // @ts-ignore
+                    resolve(newElement)
+                }
+            })
+            .catch(reject)
+    })
+}
+
 function GUID() {
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     let result = ''
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < 16; i++) {
         const num = Math.random()
         const char = chars[Math.round(num * chars.length)]
         result += char
@@ -96,22 +143,7 @@ function GUID() {
     return result
 }
 
-if (navigator.serviceWorker) {
-    navigator.serviceWorker.register('/test.js', { scope: '/', type: 'classic' })
-        .then(registration => {
-            if (registration.installing) {
-                console.log("Service worker installing")
-            } else if (registration.waiting) {
-                console.log("Service worker installed")
-            } else if (registration.active) {
-                console.log("Service worker active")
-            }
-            registration.sync.register('myFirstSync')
-        })
-        .catch(console.error)
-}
-
-const currentChannelElement = TryGetElement('channel-' + GetCurrentChannel())
+const currentChannelElement = TryGetElement('channel-' + ChatInformations?.channel)
 if (currentChannelElement) {
     currentChannelElement.classList.add('channel-selected')
 }

@@ -1,0 +1,13 @@
+<div class="message message-sending" id="{{ID}}">
+    <div class="message-header">
+        <img title="Avatar" src="/img/user.png" width=32 height=32 class="avatar">
+        <span title="User Name" class="username">{{sender.name}}</span>
+        <span title="Time" class="time">{{time time}}</span>
+        <button disabled title="Delete Message">
+            <img src="/img/bin.png" alt="Delete Message" width=24 height=24>
+        </button>
+    </div>
+    <div class="message-body">
+        {{content}}
+    </div>
+</div>

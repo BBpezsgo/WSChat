@@ -24,12 +24,13 @@ function SendRequest(url, method, timeout = 0) {
     if (req.readyState === 4) {
         return req.responseText
     }
-    else throw new Error(`Unknown HTTP error, readyState: ${req.readyState}, status: ${req.status}`)
+    else throw new Error(`Unknown XHR error, readyState: ${req.readyState}, status: ${req.status}`)
 }
 
 /**
  * @param {string | URL} url
  * @param {string} method
+ * @returns {Promise<string>}
  */
 function SendRequestAsync(url, method, timeout = 0) { return new Promise((resolve, reject) => {
     const req = new XMLHttpRequest()

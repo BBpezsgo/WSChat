@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="icon" href="/favicon.png" type="image/png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="stylesheet" href="/base-style.css">
+    <style>
+        body > div {
+            border: 2px solid #000;
+            display: inline-block;
+            position: absolute;
+            left: 50%;
+            top: 10%;
+            transform: translateX(-50%);
+            padding: 32px;
+            background-color: #eee;
+            box-shadow: #000 5px 5px 0px 0px;
+        }
+
+        span.light {
+            color: #999;
+        }
+
+        #details {
+            font-family: monospace;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>
+            <span class="light">HTTP</span> {{httpCode}}
+        </h1>
+        
+        <p>
+            {{message}}
+        </p>
+
+        <a href="/channel/default">Homepage</a>
+
+        {{#if details}}
+        <p id="details">
+            {{{readablejson details}}}
+        </p>
+        {{/if}}
+    </div>
+</body>
+</html>

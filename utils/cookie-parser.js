@@ -19,7 +19,7 @@ module.exports = function(data) {
             continue
         }
 
-        switch (parts[0]) {
+        switch (parts[0].toLowerCase()) {
             case 'max-age':
                 if (!currentCookie) {
                     console.warn('[Cookie Parser]: Unexpected key', row)
@@ -27,6 +27,14 @@ module.exports = function(data) {
                 }
                 // @ts-ignore
                 result[currentCookie].MaxAge = Number.parseInt(parts[1])
+                break
+
+            case 'expires':
+                if (!currentCookie) {
+                    console.warn('[Cookie Parser]: Unexpected key', row)
+                    continue
+                }
+                // result[currentCookie].Expires = Number.parseInt(parts[1])
                 break
         
             default:

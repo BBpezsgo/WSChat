@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
-    <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="/favicon.png">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/base-style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div id="status-container">
         <div>
-            <img src="/img/antenna.png" width=16 height=16 class="miniicon"><span id="status-socket"></span>
+            <img src="/img/antenna.png" width=16 height=16 class="miniicon"><span id="status-socket">Loading ...</span>
         </div>
         <div>
             You are <span id="status-user">{{user.name}}</span>
@@ -31,8 +31,8 @@
         <div id="channels-container">
             <h1>Channels</h1>
             {{#each channels}}
-            <div class="channel-container" id="channel-{{ID}}">
-                <a href="/?channel={{ID}}">
+            <div class="button channel-container" id="channel-{{ID}}">
+                <a href="/channel/{{ID}}">
                     <h2>
                         {{ID}}
                     </h2>
@@ -91,12 +91,17 @@
         </div>
     </div>
 
+    <script>
+        const info = {{#if chatInfo}} {{{json chatInfo}}} {{else}} null {{/if}}
+
+        window.ChatInformations = info
+    </script>
     <script src="/cookie.js"></script>
-    <script src="http.js"></script>
-    <script src="handlebars.js"></script>
-    <script src="handlebar-helpers.js"></script>
-    <script src="utilities.js"></script>
-    <script defer src="socket.js"></script>
-    <script defer src="chat.js"></script>
+    <script src="/http.js"></script>
+    <script src="/handlebars.js"></script>
+    <script src="/register-handlebar-helpers.js"></script>
+    <script src="/utilities.js"></script>
+    <script defer src="/socket.js"></script>
+    <script defer src="/chat.js"></script>
 </body>
 </html>

@@ -1,44 +1,6 @@
-html, body {
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    height: 100%;
-    overflow: hidden;
-    background-color: #ccc;
-}
-
-a {
-    color: #00f;
-}
-
-button {
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    background-color: #bbb;
-    border: 2px solid #bbb;
-    border-color: #fff #000 #000 #fff;
-    user-select: none;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-button:active {
-    border-color: #000 #fff #fff #000;
-}
-
-input[type=text] {
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    background-color: #ccc;
-    border: 2px solid #bbb;
-    border-color: #000 #bbb #bbb #000;
-}
-
-:focus-visible {
-    border: 2px solid #00f !important;
-    outline: unset !important;
-}
-
 body {
     display: flex;
     flex-direction: column;
-    margin: 0px;
 }
 
 #status-container {
@@ -226,6 +188,10 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 4px;
+}
+
+.message.message-sending {
+    opacity: 50%;
 }
 
 .message {

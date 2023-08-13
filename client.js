@@ -1,8 +1,12 @@
 const ws = require('ws')
 const net = require('net')
 const Models = require('./models')
+const ANSI = require('./ansi')
 
 class Client {
+    /**
+     * @returns {boolean}
+     */
     get IsOnline() {
         if (!this.WebSocket)
         { return false }
@@ -13,11 +17,39 @@ class Client {
     }
 
     /**
+     * @returns {Models.ActiveUser}
+     */
+    get ActiveUser() {
+        return {
+            ...this.User,
+            isOnline: this.IsOnline,
+        }
+    }
+
+    /**
+     * @returns {boolean}
+     */
+    get IsAuthorized() {
+        if (!this.Token) {
+            return false
+        }
+        if (this.Token.expiresAt <= Date.now()) {
+            return false
+        }
+        if (this.Token.userID !== this.ID) {
+            return false
+        }
+        return true
+    }
+
+    /**
      * @param {string} id
+     * @param {string} password
      * @param {import('./server')} server
      */
-    constructor(id, server) {
+    constructor(id, password, server) {
         this.ID = id
+        this.Password = password
         this.SERVER = server
 
         /** @type {net.Socket?} */
@@ -33,12 +65,32 @@ class Client {
             admin: false,
         }
 
-        this.Authorized = false
-
         /** @type {string | null} */
         this.ActiveChannelID = null
+
+        /** @type {Models.Token | null} */
+        this.Token = null
+
+        /** @type {string | null} */
+        this.RemoteAddress = null
         
-        console.log('Create new client', this)
+        // console.log(`${ANSI.FG.Gray}Create new client`, this)
+    }
+
+    /**
+     * @returns {Models.SerializedUser}
+     */
+    Serialize() {
+        return {
+            id: this.ID,
+            state: {
+                channel: this.ActiveChannelID,
+            },
+            user: this.User,
+            sensitive: {
+                password: this.Password,
+            },
+        }
     }
 
     /**
@@ -60,7 +112,7 @@ class Client {
             if (!e) { return }
 
             this.User.lastAction = Date.now()
-            console.log('[WS]: Received message: ' + e.data, e)
+            console.log(`${ANSI.FG.Gray}[WS]:   < ${e.data}`, e)
             
             /** @type {import('./websocket-message').MessageHeader} */
             const data = JSON.parse(e.data.toString())
@@ -77,13 +129,24 @@ class Client {
         this.WebSocket.addEventListener('error', console.error)
 
         this.WebSocket.addEventListener('close', e => {
-            console.log('[WS]: Client closed', e)
+            console.log(`${ANSI.FG.Gray}[WS]:   ${ANSI.FG.Yellow}X${ANSI.FG.Gray} ${this.RemoteAddress}`, e)
         })
     }
 
     /**
+     * @param {Models.Token | null | undefined} token
+     */
+    SetToken(token) {
+        if (!token) {
+            this.Token = null
+        } else {
+            this.Token = token
+        }
+    }
+
+    /**
      * @param {string} type
-     * @param {object | string} data
+     * @param {any} data
      */
     SendMessage(type, data) {
         const _message = {
@@ -91,23 +154,8 @@ class Client {
             type: type,
             data: data,
         }
-        console.log('[WS]: Sending message to a client', _message)
+        console.log(`${ANSI.FG.Gray}[WS]:   >`, _message)
         this.WebSocket?.send(JSON.stringify(_message))
-    }
-
-    GetRaw() {
-        return {
-            id: this.ID,
-            ActiveChannelID: this.ActiveChannelID,
-            user: this.User,
-        }
-    }
-
-    GetUser() {
-        return {
-            ...this.User,
-            isOnline: this.IsOnline,
-        }
     }
 }
 

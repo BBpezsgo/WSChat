@@ -1,6 +1,8 @@
-declare var TemplateCache: Cache | null
+declare let TemplateCache: Cache | null
+declare let CustomTemplateCache: { [key: string]: string | undefined }
 
 declare global {
+    function IsSecure(): boolean
 
     function CreateElement(htmlString: string): Element
     

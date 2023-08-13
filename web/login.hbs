@@ -6,20 +6,18 @@
     <title>Chat - Login</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="/favicon.ico">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/base-style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div id="login">
-        <h1>Before you join...</h1>
-        <form method="post" action="/login">
+        <h1>Login</h1>
+        <form method="post">
             <input name="username" type="text" placeholder="Username">
-            <input type="submit" value="Join">
+            <input name="password" type="password" placeholder="Password">
+            <input type="submit" value="Login" formaction="/api/login">
+            <input type="submit" value="Register" formaction="/api/register">
         </form>
     </div>
-
-    <script src="/cookie.js"></script>
-    <script src="http.js"></script>
-    <script src="handlebars.js"></script>
-    <script src="utilities.js"></script>
 </body>
 </html>

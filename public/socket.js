@@ -34,7 +34,7 @@ class WebSocketManager {
     Connect() {
         console.log('[WS]: Connecting ...')
 
-        this.WS = new WebSocket('ws://' + window.location.host + '/')
+        this.WS = new WebSocket(`${(IsSecure() ? 'wss' : 'ws')}://${window.location.host}/`)
 
         const self = this
 

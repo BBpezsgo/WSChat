@@ -18,7 +18,8 @@
         "noImplicitOverride": true,
         "noImplicitReturns": true,
         "noEmitOnError": true,
-        "noImplicitThis": true
+        "noImplicitThis": true,
+        "resolveJsonModule": true
     },
     "exclude": [
         "node_modules",

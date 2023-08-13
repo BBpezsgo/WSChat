@@ -1,12 +1,13 @@
-/**
- * @param {Handlebars} handlebars
- */
-module.exports = function(handlebars) {
-    handlebars.registerHelper('json', function(value) {
+(function() {
+    Handlebars.registerHelper('json', function(value) {
         return JSON.stringify(value)
     })
+    
+    Handlebars.registerHelper('readablejson', function(value) {
+        return JSON.stringify(value, null, ' ').replace(/\n/g, '<br/>').replace(/ /g, '&nbsp;')
+    })
 
-    handlebars.registerHelper('time', function(value) {
+    Handlebars.registerHelper('time', function(value) {
         if (typeof value !== 'number') {
             return JSON.stringify(value)
         }
@@ -17,7 +18,7 @@ module.exports = function(handlebars) {
         return `${Num2(date.getHours())}:${Num2(date.getMinutes())}`
     })
 
-    handlebars.registerHelper('datetime', function(value) {
+    Handlebars.registerHelper('datetime', function(value) {
         if (typeof value !== 'number') {
             return JSON.stringify(value)
         }
@@ -28,18 +29,23 @@ module.exports = function(handlebars) {
         return `${date.getFullYear()}.${date.getMonth()+1}.${date.getDate()} ${Num2(date.getHours())}:${Num2(date.getMinutes())}`
     })
 
-    handlebars.registerHelper('switch', function(value, options) {
+    Handlebars.registerHelper('switch', function(value, options) {
         this.switch_value = value
         return options.fn(this)
     })
 
-    handlebars.registerHelper('case', function(value, options) {
+    Handlebars.registerHelper('case', function(value, options) {
+        // @ts-ignore
         if (value == this.switch_value) {
+            // @ts-ignore
             return options.fn(this)
         }
     })
 
-    handlebars.registerHelper('default', function(options) {
+    Handlebars.registerHelper('default', function(options) {
+        // @ts-ignore
         return options.fn(this)
     })
-}
+    
+    console.log(`[Handlebars]: Helpers registered`)
+})()

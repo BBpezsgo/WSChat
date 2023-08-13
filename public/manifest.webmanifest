@@ -29,6 +29,7 @@
         }
     ],
     "background_color": "#ffffff",
-    "display": "browser",
-    "start_url": "https://192.168.1.100:7776/"
+    "display": "standalone",
+    "start_url": "https://bbpezsgo.ddns.net:7776/",
+    "id": "bb-ws-chat"
 }

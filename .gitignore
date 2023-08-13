@@ -3,8 +3,7 @@
 
 /node_modules
 /storage
-/cert.pem
-/private.pem
+certificate.json
 /package-lock.json
 /public/DigiGrotesk.ttf
 /public/handlebars.js
