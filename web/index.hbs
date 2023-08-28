@@ -12,9 +12,9 @@
 <body>
     <div id="status-container">
         <div>
-            <img src="/img/antenna.png" width=16 height=16 class="miniicon"><span id="status-socket">Loading ...</span>
+            <img src="/img/antenna-off.png" width=24 height=24 class="miniicon" id="status-socket-icon"><span id="status-socket">Loading ...</span>
         </div>
-        <div>
+        <div style="padding-top: 7px;">
             You are <span id="status-user">{{user.name}}</span>
         </div>
         <div style="padding-top:unset">
@@ -41,6 +41,15 @@
             {{/each}}
         </div>
         <div id="chat-container">
+            <div id="channel-header">
+                <button onclick="BeginVoice()" id="button-begin-voice">
+                    <img src="/img/phone.png" width="16" height="16" class="miniicon">
+                    <span id="button-begin-voice-label">Begin Call</span>
+                </button>
+                <img src="/img/dialing.gif" width="32" height="32" style="display: none;">
+                <span id="label-current-voice"></span>
+            </div>
+
             <div id="messages">
                 {{#each messages}}
                 {{#with this}}{{> base_message}}{{/with}}
@@ -67,8 +76,22 @@
             {{#each users}}
             <div class="user-container">
                 <div>
+                    {{#if admin}}
+                    <img title="Avatar" src="/img/admin.png" width=32 height=32 class="avatar">
+                    {{else}}
+                    {{#if anonymous}}
+                    <img title="Avatar" src="/img/anonymous.png" width=32 height=32 class="avatar">
+                    {{else}}
                     <img title="Avatar" src="/img/user.png" width=32 height=32 class="avatar">
-                    <h1>{{name}}</h1>
+                    {{/if}}
+                    {{/if}}
+                    <h1>
+                        {{#if anonymous}}
+                        Guest
+                        {{else}}
+                        {{name}}
+                        {{/if}}
+                    </h1>
 
                     {{#if isOnline}}
                     <span class="status-icon status-icon-online" title="Online"></span>
@@ -84,6 +107,12 @@
                     <br/>
 
                     <span>Admin</span>
+                    {{/if}}
+                    
+                    {{#if anonymous}}
+                    <br/>
+
+                    <span>Anonymous</span>
                     {{/if}}
                 </div>
             </div>

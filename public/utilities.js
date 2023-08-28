@@ -1,7 +1,7 @@
 // Some basic utilities
 
 TemplateCache = null
-if (this.caches) {
+if (false && this.caches) {
     this.caches.open('templates')
         .then(function(cache) { TemplateCache = cache })
         .catch(console.error)
@@ -23,7 +23,7 @@ function CreateElement(htmlString) {
     const div = document.createElement(htmlString.startsWith('<tr') ? 'tbody' : 'div')
     div.innerHTML = htmlString
     const result = div.firstElementChild
-    if (!result) { throw new Error("wtf?") }
+    if (!result) { throw new Error(`Failed to create element: "${htmlString}"`) }
     return result
 }
 

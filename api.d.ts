@@ -58,6 +58,7 @@ class APIHandler {
     static GetTokenCookie(token: { token: string; expiresAt: number }): string
 
     PurgeTokens(): void
+    PurgeClients(): void
 
     HandleApiRequest(method: HttpMethod, path: string, data: any): ApiRequestHandler.ApiResult<any>
 }

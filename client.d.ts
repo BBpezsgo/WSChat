@@ -9,17 +9,19 @@ export = class Client {
 
     readonly ID: string
     readonly SERVER: import('./server')
-    Password: string
+    Password: string | null
 
     Socket: net.Socket | null
     WebSocket: ws.WebSocket | null
+
+    CurrentVoice: string | null
 
     User: Models.PublicUser
     ActiveChannelID: string | null
 
     RemoteAddress: string | null
 
-    constructor(id: string, password: string, server: import('./server'))
+    constructor(id: string, password: string | null, server: import('./server'))
 
     Serialize(): Models.SerializedUser
 
@@ -30,9 +32,19 @@ export = class Client {
 
     SendMessage(type: 'message-created', data: Models.Message): void
     SendMessage(type: 'message-deleted', data: string): void
+    SendMessage(type: 'voice', data: {
+        voice: string,
+        callID: string,
+    }): void
     SendMessage(type: 'base-response', data: {
         AckMessageID: string
         data: 'OK' | {
+            error: string
+        }
+    }): void
+    SendMessage(type: 'begin-voice-response', data: {
+        AckMessageID: string
+        data: string | {
             error: string
         }
     }): void

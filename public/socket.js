@@ -40,6 +40,7 @@ class WebSocketManager {
 
         this.WS.addEventListener('open', function() {
             statusSocket.innerText = 'Connected'
+            statusSocketIcon.src = '/img/antenna.png'
             console.log('[WS]: Connected')
 
             if (self.ReconnectHandler) {
@@ -49,11 +50,13 @@ class WebSocketManager {
 
         this.WS.addEventListener('error', function(e) {
             statusSocket.innerText = 'Error'
+            statusSocketIcon.src = '/img/antenna-off.png'
             console.error('[WS]: Error', e)
         })
         
         this.WS.addEventListener('close', function(e) {
             statusSocket.innerText = 'Disconnected'
+            statusSocketIcon.src = '/img/antenna-off.png'
             console.log('[WS]: Disconnected', e)
 
             console.log(`[WS]: Reconnecting in ${ReconnectTime} ms`, e)
@@ -63,8 +66,6 @@ class WebSocketManager {
         this.WS.addEventListener('message', function(e) {
             if (!e) { return }
 
-            console.log('[WS]: Message from server: ' + e.data, e)
-
             /** @type {import('../websocket-message').MessageHeader} */
             const data = JSON.parse(e.data)
 
@@ -72,7 +73,8 @@ class WebSocketManager {
 
             if (typeof data.type !== 'string') { return }
 
-            if (data.type === 'base-response') {
+            if (data.type === 'base-response' ||
+                data.type === 'begin-voice-response') {
                 for (let i = self.SentMessages.length - 1; i >= 0; i--) {
                     const sentMessage = self.SentMessages[i]
                     if (sentMessage.ID === data.data.AckMessageID) {
@@ -86,6 +88,7 @@ class WebSocketManager {
                 return
             }
 
+            console.log('[WS]: Message from server: ' + e.data, e)
             self.OnMessage(data)
         })
     }

@@ -44,13 +44,15 @@ class Client {
 
     /**
      * @param {string} id
-     * @param {string} password
+     * @param {string | null} password
      * @param {import('./server')} server
      */
     constructor(id, password, server) {
         this.ID = id
         this.Password = password
         this.SERVER = server
+        /** @type {string | null} */
+        this.CurrentVoice = null
 
         /** @type {net.Socket?} */
         this.Socket = null
@@ -63,6 +65,7 @@ class Client {
             name: '',
             lastAction: Date.now(),
             admin: false,
+            anonymous: true,
         }
 
         /** @type {string | null} */

@@ -2,6 +2,12 @@ export enum MessageType {
     UNKNOWN = 0,
     USER = 1,
     SYSTEM = 2,
+    CALL = 3,
+}
+
+export type CallMessage = Message & {
+    callID: string
+    type: MessageType.CALL,
 }
 
 export type Message = PartialMessage & {
@@ -15,6 +21,7 @@ export type PrivateUser = PublicUser & {
 export type PublicUser = {
     name: string
     lastAction: number
+    anonymous: boolean
     admin?: boolean
 }
 
@@ -50,7 +57,7 @@ export type UserState = {
 }
 
 export type SensitiveData = {
-    password: string
+    password: string | null
 }
 
 export type Token = {

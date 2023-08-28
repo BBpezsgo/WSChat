@@ -12,12 +12,18 @@ a {
 button,
 input[type=submit] {
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    /*
     background-color: #bbb;
     border: 2px solid #bbb;
     border-color: #fff #000 #000 #fff;
+    */
     user-select: none;
-    cursor: pointer;
     font-weight: 600;
+}
+
+button:not(:disabled),
+input[type=submit]:not(:disabled) {
+    cursor: pointer;
 }
 
 button:active,
@@ -42,7 +48,6 @@ body {
     margin: 0px;
 }
 
-/*
 button,
 .button a {
     color: #000;
@@ -52,16 +57,17 @@ button,
 button,
 .button,
 input[type=submit] {
+    --black: #555;
+
     user-select: none;
     font-weight: bold;
     color: #000;
     background-color: #bbb;
-    border: 2px solid !important;
-    border-color: #eee #ddd #eee #ddd;
+    border: 2px solid var(--black) !important;
     box-shadow:
-        0px 4px 0px #444,
-        0px 0px 0px 2px black,
-        0px 4px 0px 2px black;
+        0px 0px 0px var(--black),
+        0px 2px 0px var(--black),
+        0px 0px 0px 2px inset #ddd;
     cursor: pointer;
     margin: 4px;
 }
@@ -71,11 +77,10 @@ button:hover,
 input[type=submit]:hover {
     color: #000;
     background-color: #ccc;
-    border-color: #fff #eee #fff #eee;
     box-shadow:
-        0px 4px 0px #555,
-        0px 0px 0px 2px black,
-        0px 4px 0px 2px black;
+        0px 0px 0px var(--black),
+        0px 2px 0px var(--black),
+        0px 0px 0px 2px inset #eee;
 }
 
 button:active,
@@ -83,11 +88,10 @@ button:active,
 input[type=submit]:active {
     color: #000;
     background-color: #ccc;
-    border: 2px solid !important;
-    border-color: #fff #eee #fff #eee !important;
     box-shadow:
-        0px 0px 0px 2px black !important;
-    transform: translateY(4px);
+        0px 0px 0px var(--black),
+        0px 0px 0px 2px inset #eee !important;
+    transform: translateY(2px);
     cursor: pointer;
     margin: 4px;
 }
@@ -98,12 +102,11 @@ button.channel-selected,
 .button.channel-selected {
     color: #000 !important;
     background-color: #ccc !important;
-    border: 2px solid !important;
-    border-color: #00f #00f #00f #00f !important;
+    border-color: var(--black) var(--black) var(--black) var(--black) !important;
     box-shadow:
-        0px 0px 0px 2px black !important;
-    transform: translateY(4px);
+        0px 0px 0px var(--black),
+        0px 0px 0px 2px inset #eee !important;
+    transform: translateY(2px);
     cursor: pointer;
     margin: 4px;
 }
-*/

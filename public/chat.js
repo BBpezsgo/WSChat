@@ -2,6 +2,8 @@
 const chatInput = document.getElementById('chat-input')
 /** @ts-ignore @type {HTMLInputElement} */
 const statusSocket = document.getElementById('status-socket')
+/** @ts-ignore @type {HTMLImageElement} */
+const statusSocketIcon = document.getElementById('status-socket-icon')
 /** @ts-ignore @type {HTMLInputElement} */
 const statusSession = document.getElementById('status-session')
 
@@ -11,6 +13,162 @@ const sendingMessages = { }
 function LogOut() {
     Cookies.remove('token')
     location.reload()
+}
+
+/** @type {string | null} */
+let CurrentVoice = null
+
+/** @type {MediaRecorder | null} */
+let Recorder = null
+
+function BeginVoice() {
+    /** @ts-ignore @type {HTMLButtonElement} */
+    const button = document.getElementById('button-begin-voice')
+    /** @ts-ignore @type {HTMLElement} */
+    const buttonLabel = document.getElementById('button-begin-voice-label')
+
+    button.disabled = true
+    buttonLabel.innerText = `Loading ...`
+
+    if (CurrentVoice) {
+        ws.SendMessage('end-voice', CurrentVoice, response => {
+            if (response !== 'OK') {
+                console.warn(`[Voice]: Failed to end call: ${response.error}`)
+                return
+            }
+
+            if (Recorder && Recorder.stream) {
+                const tracks = Recorder.stream.getTracks()
+                for (const track of tracks) {
+                    track.stop()
+                    Recorder.stream.removeTrack(track)
+                }
+            }
+
+            button.disabled = false
+            buttonLabel.innerText = `Begin Call`
+            CurrentVoice = null
+            
+            // @ts-ignore
+            document.getElementById('label-current-voice').innerText = ''
+        })
+        return
+    }
+
+    ws.SendMessage('begin-voice', ChatInformations?.channel ?? '', response => {
+        button.disabled = false
+        buttonLabel.innerText = `End Call`
+        CurrentVoice = response
+
+        HandleVoiceCall()
+    })
+}
+
+/**
+ * @param {string} callID
+ */
+function JoinCall(callID) {
+    /** @ts-ignore @type {HTMLButtonElement} */
+    const button = document.getElementById('button-begin-voice')
+    /** @ts-ignore @type {HTMLElement} */
+    const buttonLabel = document.getElementById('button-begin-voice-label')
+    
+    if (CurrentVoice) {
+        console.warn(`[Voice]: Failed to join call "${callID}": already joined to call ${CurrentVoice}`)
+        return
+    }
+
+    button.disabled = true
+    buttonLabel.innerText = `Loading ...`
+
+    ws.SendMessage('join-voice', callID, response => {
+        if (response !== 'OK') {
+            console.warn(`[Voice]: Failed to join call "${callID}": ${response.error}`)
+
+            button.disabled = false
+            buttonLabel.innerText = `Begin Call`
+            CurrentVoice = null
+
+            return
+        }
+
+        button.disabled = false
+        buttonLabel.innerText = `Leave Call`
+        CurrentVoice = callID
+
+        HandleVoiceCall()
+    })
+}
+
+function HandleVoiceCall() {
+    if (!CurrentVoice) {
+        return
+    }
+
+    if (!navigator || !navigator.mediaDevices) {
+        console.warn(`[Voice]: Not supported`)
+        return
+    }
+    
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(HandleVoiceMedia)
+        .catch(console.error)
+}
+
+/** @param {MediaStream} stream */
+function HandleVoiceMedia(stream) {
+    const time = 1000
+
+    // @ts-ignore
+    document.getElementById('label-current-voice').innerText = `In Voice Call`
+    
+    /** @type {Blob[]} */
+    var audioChunks = []
+
+    if (!Recorder) {
+        Recorder = new MediaRecorder(stream)
+
+        Recorder.addEventListener('dataavailable', e => audioChunks.push(e.data))
+
+        Recorder.addEventListener("stop", () => {
+            const audioBlob = new Blob(audioChunks)
+
+            audioChunks = []
+
+            const fileReader = new FileReader()
+            fileReader.readAsDataURL(audioBlob)
+            fileReader.onloadend = () => {
+                if (!CurrentVoice) { return }
+                if (!fileReader.result) { return }
+
+                const data = fileReader.result.toString()
+
+                // @ts-ignore
+                document.getElementById('label-current-voice').innerText = `In Voice Call`
+                console.log(`[Voice]: Send data chunk`)
+                ws.SendMessage('voice', {
+                    voice: data,
+                    callID: CurrentVoice,
+                })
+            }
+
+            if (CurrentVoice && Recorder && Recorder.stream && Recorder.stream.active && Recorder.state !== 'recording') {
+                Recorder.start()
+            }
+
+            setTimeout(() => {
+                if (Recorder) Recorder.stop()
+            }, time)
+        })
+    } else {
+        Recorder.stream.addTrack(stream.getTracks()[0])
+    }
+
+    Recorder.start()
+
+    setTimeout(() => {
+        if (Recorder) Recorder.stop()
+    }, time)
 }
 
 /**
@@ -89,6 +247,15 @@ function OnWebSocketMessage(message) {
             }
             break
         }
+        case 'voice': {
+            if (message.data.voice.startsWith('data:audio/ogg;')) {
+                const audio = new Audio(message.data.voice)
+                audio.play()
+            } else {
+                console.error(`[Voice]: Invalid audio data`)
+            }
+            break
+        }
         default: {
             break
         }
@@ -101,7 +268,22 @@ function OnWebSocketMessage(message) {
  */
 function GenerateMessageElement(data) {
     return new Promise((resolve, reject) => {
-        TemplateAsync('base_message', data)
+        let messagePartialName = null
+        switch (data.type) {
+            case 1:
+                messagePartialName = 'user_message'
+                break
+            case 2:
+                messagePartialName = 'system_message'
+                break
+            case 3:
+                messagePartialName = 'call_message'
+                break
+            default:
+                reject(`Unknown message type ${data.type}`)
+                return
+        }
+        TemplateAsync(messagePartialName, data)
             .then(element => {
                 const messagesElement = GetElement('messages')
                 

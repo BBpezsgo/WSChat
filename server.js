@@ -48,6 +48,11 @@ class ChatServer {
             const content = fs.readFileSync(Path.join(__dirname, 'public', 'templates', 'user_message.hbs'), 'utf8')
             return Handlebars.compile(content)(context)
         })
+        
+        Handlebars.registerPartial('call_message', function(context) {
+            const content = fs.readFileSync(Path.join(__dirname, 'public', 'templates', 'call_message.hbs'), 'utf8')
+            return Handlebars.compile(content)(context)
+        })
 
         eval(fs.readFileSync(Path.join(__dirname, '/utils/handlebar-helpers.js'), 'utf8'))
         
@@ -158,6 +163,7 @@ class ChatServer {
         this.API.LoadChannels()
         this.API.LoadTokens()
         this.API.PurgeTokens()
+        this.API.PurgeClients()
     }
 
     /**
@@ -628,6 +634,29 @@ class ChatServer {
             return
         }
         
+        if (message.type === 'voice') {
+            let bruh = message.data.voice.split(";")
+            bruh[0] = "data:audio/ogg;"
+            const newData = bruh[0] + bruh[1]
+
+            for (const client of this.API.Clients) {
+                if (!client.IsOnline) continue
+                if (!client.IsAuthorized) continue
+                if (client.ID === client.ID) continue
+                
+                client.SendMessage('voice', {
+                    voice: newData,
+                    callID: message.data.callID,
+                })
+            }
+
+            client.SendMessage('base-response', {
+                AckMessageID: message.ID,
+                data: 'OK',
+            })
+            return
+        }
+
         this.API.Handle(message, client)
     }
 }

@@ -6,10 +6,11 @@ const Client = require('./client')
 const Models = require('./models')
 const ParseCookies = require('./utils/cookie-parser')
 const ChatServer = require('./server')
-const GUID = require('./guid')
 const Utils = require('./utils')
+const GUID = require('./guid')
 
 const ApiRequestHandler = require('./api-request-handler')
+const { MessageType } = require('./models')
 
 class APIHandler {
     /**
@@ -79,6 +80,7 @@ class APIHandler {
             user.SetToken(token)
 
             user.User.name = username
+            user.User.anonymous = false
 
             this.SaveUsers()
 
@@ -191,6 +193,34 @@ class APIHandler {
             }
         })
 
+        this.Handler.Register('/anonymous', 'POST', data => {
+            let username = data['username']?.toString()
+            
+            if (!username) { username = `guest-${GUID()}` }
+
+            const userID = GUID()
+
+            const user = new Client(userID, null, this.Server)
+            user.User.name = username
+            user.User.anonymous = true
+
+            const token = this.GenerateToken(user.ID)
+            user.SetToken(token)
+
+            this.Clients.push(user)
+
+            this.SaveUsers()
+
+            console.log('Anonymous user authorized', user)
+
+            return {
+                success: true,
+                httpCode: 303,
+                redirect: `/?channel=${user.ActiveChannelID ?? 'default'}`,
+                setCookie: APIHandler.GetTokenCookie(token),
+            }
+        })
+
         this.Handler.Register('/user/*', 'GET', (data, path) => {
             const disassembledPath = Utils.DisassemblePath(path, 'user')
 
@@ -237,7 +267,7 @@ class APIHandler {
             }
         })
         
-        this.Handler.Register('/users', 'GET', data => {
+        this.Handler.Register('/users', 'GET', () => {
             let result = [ ]
 
             for (const user of this.Clients) {
@@ -435,6 +465,91 @@ class APIHandler {
                 })
                 break
             }
+            case 'begin-voice': {
+                const callID = GUID()
+                const channelID = message.data
+                const channel = this.GetChannel(channelID)
+                if (!channel) {
+                    client.SendMessage('begin-voice-response', {
+                        AckMessageID: message.ID,
+                        data: { error: `Channel "${channelID}" not found` },
+                    })
+                    break
+                }
+
+                client.SendMessage('begin-voice-response', {
+                    AckMessageID: message.ID,
+                    data: callID,
+                })
+                client.CurrentVoice = callID
+
+                /** @type {import('./models').CallMessage} */
+                const channelMessage = {
+                    ID: GUID(),
+                    content: '',
+                    time: Date.now(),
+                    senderID: client.ID,
+                    type: MessageType.CALL,
+                    sender: client.User,
+                    callID: callID,
+                }
+                channel.Messages.push(channelMessage)
+                this.SaveChannels()
+
+                for (const client of this.Clients) {
+                    if (client.ActiveChannelID === channel.ID) {
+                        client.SendMessage('message-created', channelMessage)
+                    }
+                }
+                
+                break
+            }
+            case 'join-voice': {
+                const callID = message.data
+                
+                if (!callID) {
+                    client.SendMessage('base-response', {
+                        AckMessageID: message.ID,
+                        data: { error: `Call id not specified` },
+                    })
+                    break
+                }
+
+                if (client.CurrentVoice && client.CurrentVoice !== callID) {
+                    client.SendMessage('base-response', {
+                        AckMessageID: message.ID,
+                        data: { error: `Already in call` },
+                    })
+                    break
+                }
+
+                client.CurrentVoice = callID
+
+                client.SendMessage('base-response', {
+                    AckMessageID: message.ID,
+                    data: 'OK',
+                })
+
+                break
+            }
+            case 'end-voice': {
+                const callID = message.data
+                
+                if (!client.CurrentVoice || client.CurrentVoice === callID) {
+                    client.CurrentVoice = null
+                    client.SendMessage('base-response', {
+                        AckMessageID: message.ID,
+                        data: 'OK',
+                    })
+                    break
+                }
+
+                client.SendMessage('base-response', {
+                    AckMessageID: message.ID,
+                    data: { error: `Invalid call id` },
+                })
+                break
+            }
             default: {
                 break
             }
@@ -551,10 +666,49 @@ class APIHandler {
         for (let i = this.Tokens.length - 1; i >= 0; i--) {
             const token = this.Tokens[i]
             if (token.expiresAt <= Date.now()) {
+                console.log(`[Purge]: Expired token has been deleted`, token)
                 this.Tokens.splice(i, 1)
+                continue
+            }
+
+            let isUsed = false
+            for (const user of this.Clients) {
+                if (user.ID === token.userID) {
+                    isUsed = true
+                    break
+                }
+            }
+
+            if (!isUsed) {
+                console.log(`[Purge]: Unused token has been deleted`, token)
+                this.Tokens.splice(i, 1)
+                continue
             }
         }
+
         this.SaveTokens()
+    }
+
+    PurgeClients() {
+        for (let i = this.Clients.length - 1; i >= 0; i--) {
+            const client = this.Clients[i]
+            if (client.User.anonymous) {
+                let hasToken = false
+                for (const token of this.Tokens) {
+                    if (token.userID === client.ID) {
+                        hasToken = true
+                        break
+                    }
+                }
+
+                if (!hasToken) {
+                    console.log(`[Purge]: Anonymous user without token has been deleted`, client)
+                    this.Clients.splice(i, 1)
+                    continue
+                }
+            }
+        }
+        this.SaveUsers()
     }
 
     /**

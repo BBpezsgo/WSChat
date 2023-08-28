@@ -2,5 +2,6 @@
     "base_message",
     "system_message",
     "user_message",
-    "sending_message"
+    "sending_message",
+    "call_message"
 ]
